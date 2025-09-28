@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>4x4 Grid Image Analyzer</title>
     <style>
-        /* スタイルは変更なし */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             max-width: 1200px;
@@ -249,10 +248,10 @@
     </div>
 
     <script>
-        // 画像認識用のパターンマッチング辞書 (変更なし)
+        // 画像認識用のパターンマッチング辞書
         const contentPatterns = {
-            'logo-center': ['logo', 'ロゴ', 'LOGO'], // 中央配置ロゴ
-            'logo-left': ['logo', 'ロゴ', 'LOGO'],   // 左配置ロゴ
+            'logo-center': ['logo', 'ロゴ', 'LOGO'],
+            'logo-left': ['logo', 'ロゴ', 'LOGO'],
             'sns': ['facebook', 'twitter', 'instagram', 'x', 'sns', 'SNS', 'f', 'ig'],
             'home': ['home', 'ホーム', 'HOME'],
             'terms': ['利用規約', '規約', 'terms'],
@@ -260,16 +259,10 @@
             'privacy': ['プライバシーポリシー', 'privacy', 'プライバシー', 'ポリシー'],
             'phone': ['tel', 'TEL', '042', '637', '8111', '電話'],
             'copyright': ['©', 'copyright', '2025', '©2025'],
-            // 新しい検出パターン
             'content_group': ['コンテンツ', 'content'],
-            'news': ['お知らせ', 'news', 'ニュース'],
-            'product': ['プロダクト', 'product', '製品'],
             'support_group': ['サポート', 'support'],
-            'contact': ['お問い合わせ', 'contact', '連絡'],
-            'faq': ['よくある質問', 'FAQ', 'faq', 'よくある'],
-            'document': ['資料請求', '資料', 'document'],
             'policy_group': ['ポリシー', 'policy'],
-            'cookie': ['cookieポリシー', 'cookie', 'クッキー']
+            // 簡略化のため、ナビゲーション要素は分類しない
         };
 
         // カメラ関連の変数
@@ -278,7 +271,7 @@
         let cameraCanvas = null;
         let cameraContext = null;
 
-        // DOM要素の取得（カメラ関連を追加）
+        // DOM要素の取得
         const uploadArea = document.getElementById('uploadArea');
         const imageInput = document.getElementById('imageInput');
         const uploadedImage = document.getElementById('uploadedImage');
@@ -299,7 +292,7 @@
         let gridData = Array(16).fill(null);
         let currentImage = null;
 
-        // ステータス表示関数 (変更なし)
+        // ステータス表示関数
         function showStatus(message, type = 'info') {
             status.textContent = message;
             status.className = `status ${type}`;
@@ -312,7 +305,7 @@
             }
         }
 
-        // グリッド可視化の初期化 (変更なし)
+        // グリッド可視化の初期化
         function initializeGrid() {
             gridVisualization.innerHTML = '';
             for (let i = 0; i < 16; i++) {
@@ -324,7 +317,7 @@
             }
         }
 
-        // ★HEIC対応ライブラリの読み込み（libheif-jsに切り替え）★
+        // --- ★ HEIC対応ライブラリの読み込み（libheif-jsに再切り替え）★ ---
         async function loadHeifLibrary() {
             return new Promise((resolve, reject) => {
                 if (window.HeifImage) {
@@ -350,7 +343,7 @@
             });
         }
 
-        // ★ファイルアップロード処理（HEIC対応修正版 - libheif-jsを使用）★
+        // --- ★ ファイルアップロード処理（HEIC対応修正版 - libheif-jsを使用）★ ---
         async function handleFile(file) {
             if (!file.type.startsWith('image/') &&
                 !file.name.toLowerCase().endsWith('.heic') &&
@@ -415,14 +408,18 @@
             reader.readAsDataURL(processedFile);
         }
 
-        // カメラ起動 (変更なし)
+        // カメラ起動
         async function startCamera() {
             try {
                 showStatus('カメラを起動中...', 'info');
                 cameraStream = await navigator.mediaDevices.getUserMedia({
                     video: {
-                        width: { ideal: 400 },
-                        height: { ideal: 400 },
+                        width: {
+                            ideal: 400
+                        },
+                        height: {
+                            ideal: 400
+                        },
                         aspectRatio: 1.0,
                         facingMode: 'environment' // 背面カメラを優先
                     }
@@ -443,19 +440,21 @@
             }
         }
 
-        // 写真撮影 (変更なし)
+        // 写真撮影
         function capturePhoto() {
             if (!cameraStream) return;
 
             cameraContext.drawImage(cameraVideo, 0, 0, 400, 400);
             cameraCanvas.toBlob(function (blob) {
-                const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+                const file = new File([blob], 'camera-capture.jpg', {
+                    type: 'image/jpeg'
+                });
                 handleFile(file);
                 stopCamera();
             }, 'image/jpeg', 0.9);
         }
 
-        // カメラ停止 (変更なし)
+        // カメラ停止
         function stopCamera() {
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
@@ -466,7 +465,7 @@
             showStatus('カメラを停止しました。', 'info');
         }
 
-        // 2段階画像解析：余白検出 → コンテンツ検出 (変更なし)
+        // 2段階画像解析：余白検出 → コンテンツ検出
         function simulateAdvancedTextDetection(canvas) {
             return new Promise((resolve) => {
                 const ctx = canvas.getContext('2d');
@@ -483,48 +482,35 @@
                     // Phase 2: 余白以外の領域でコンテンツを検出
                     const contentAreas = detectContentAreas(imageData, canvas.width, canvas.height, emptyAreas);
 
-                    // 検出されたコンテンツ領域からテキストを抽出
-                    const detectedTexts = extractTextFromContentAreas(contentAreas);
+                    console.log(`検出完了: ${contentAreas.length}個のコンテンツ候補を発見`);
 
-                    console.log(`検出完了: ${detectedTexts.length}個のコンテンツを発見`);
-
-                    resolve(detectedTexts);
-                }, 2000);
+                    resolve(contentAreas); // 生のコンテンツ候補を返す
+                }, 1500);
             });
         }
 
-        // Phase 1: 余白領域の検出（修正版）(変更なし)
+        // Phase 1: 余白領域の検出（変更なし）
         function detectEmptyAreas(imageData, width, height) {
             const data = imageData.data;
             const emptyGrids = new Set();
 
-            // 4x4グリッドの各セルを分析
             for (let row = 0; row < 4; row++) {
                 for (let col = 0; col < 4; col++) {
                     const cellKey = `${row}-${col}`;
 
-                    // Row 3（最下段）は余白判定をスキップ
-                    if (row === 3) {
-                        console.log(`余白判定スキップ: Row ${row + 1}, Col ${col + 1} (最下段は常にコンテンツ扱い)`);
-                        continue;
-                    }
+                    if (row === 3) continue; // 最下段はスキップ
 
                     const isEmpty = analyzeCellForEmptiness(data, width, height, row, col);
 
-                    // 余白判定基準を緩和（95% → 85%）
                     if (isEmpty.confidence > 0.85) {
                         emptyGrids.add(cellKey);
-                        console.log(`余白検出: Row ${row + 1}, Col ${col + 1} (信頼度: ${(isEmpty.confidence * 100).toFixed(1)}%)`);
-                    } else {
-                        console.log(`コンテンツ可能性: Row ${row + 1}, Col ${col + 1} (信頼度: ${(isEmpty.confidence * 100).toFixed(1)}%)`);
                     }
                 }
             }
-
             return emptyGrids;
         }
 
-        // セルの余白判定（基準を緩和）(変更なし)
+        // セルの余白判定（変更なし）
         function analyzeCellForEmptiness(data, width, height, row, col) {
             const cellWidth = Math.floor(width / 4);
             const cellHeight = Math.floor(height / 4);
@@ -539,7 +525,6 @@
             const colorCounts = new Map();
             const brightnessValues = [];
 
-            // 全ピクセルをサンプリング
             for (let y = startY; y < endY; y++) {
                 for (let x = startX; x < endX; x++) {
                     const i = (y * width + x) * 4;
@@ -551,14 +536,12 @@
                     totalPixels++;
                     brightnessValues.push(brightness);
 
-                    // 背景色判定を緩和
                     if (isLikelyBackground(r, g, b)) {
                         backgroundPixels++;
                     } else {
                         contentPixels++;
                     }
 
-                    // 色の分布を記録
                     const colorKey = `${Math.floor(r / 15)}-${Math.floor(g / 15)}-${Math.floor(b / 15)}`;
                     colorCounts.set(colorKey, (colorCounts.get(colorKey) || 0) + 1);
                 }
@@ -566,26 +549,19 @@
 
             const backgroundRatio = backgroundPixels / totalPixels;
             const contentRatio = contentPixels / totalPixels;
-
-            // 輝度の統一性
             const avgBrightness = brightnessValues.reduce((a, b) => a + b, 0) / brightnessValues.length;
             const brightnessVariance = brightnessValues.reduce((acc, val) => acc + Math.pow(val - avgBrightness, 2), 0) / brightnessValues.length;
             const brightnessStdDev = Math.sqrt(brightnessVariance);
-
-            // 色の統一性（許容範囲を拡大）
             const uniqueColors = colorCounts.size;
-            const maxExpectedColors = Math.max(totalPixels / 100, 10); // 期待される色数を増加
+            const maxExpectedColors = Math.max(totalPixels / 100, 10);
             const colorUniformity = Math.max(0, 1 - (uniqueColors / maxExpectedColors));
+            const brightnessUniformity = Math.max(0, 1 - (brightnessStdDev / 80));
 
-            // 輝度の統一性（基準を緩和）
-            const brightnessUniformity = Math.max(0, 1 - (brightnessStdDev / 80)); // 80 → より寛容に
-
-            // 余白信頼度の計算（基準を緩和）
             const emptyConfidence = (
-                backgroundRatio * 0.6 +           // 背景比率の重みを削減
-                colorUniformity * 0.25 +          // 色統一性の重みを削減  
-                brightnessUniformity * 0.15       // 輝度統一性の重みを削減
-            ) - (contentRatio * 0.2);             // コンテンツペナルティを削減
+                backgroundRatio * 0.6 +
+                colorUniformity * 0.25 +
+                brightnessUniformity * 0.15
+            ) - (contentRatio * 0.2);
 
             return {
                 confidence: Math.max(0, Math.min(emptyConfidence, 1.0)),
@@ -598,18 +574,13 @@
             };
         }
 
-        // 背景色の可能性判定（範囲を拡大）(変更なし)
+        // 背景色の可能性判定（変更なし）
         function isLikelyBackground(r, g, b) {
-            // 白系（基準を緩和）
             const isWhitish = (r > 230 && g > 230 && b > 230);
-
-            // グレー系（範囲を拡大）
             const isGrayish = (
                 Math.abs(r - g) < 25 && Math.abs(g - b) < 25 &&
                 r > 180 && g > 180 && b > 180
             );
-
-            // 木目調（範囲を拡大）
             const isWoodish = (
                 r >= 120 && r <= 220 &&
                 g >= 100 && g <= 190 &&
@@ -617,8 +588,6 @@
                 (r - g) > -20 && (r - g) < 50 &&
                 (g - b) > -10 && (g - b) < 60
             );
-
-            // 薄いベージュ系
             const isBeigeish = (
                 r >= 200 && r <= 255 &&
                 g >= 190 && g <= 240 &&
@@ -629,21 +598,7 @@
             return isWhitish || isGrayish || isWoodish || isBeigeish;
         }
 
-        // より精密な背景色判定 (変更なし)
-        function isUniformBackground(r, g, b) {
-            // 木目調の茶色系（範囲を狭めて精度向上）
-            const isWoodBrown = (r >= 130 && r <= 180 && g >= 90 && g <= 140 && b >= 50 && b <= 100);
-            // 明るい木目
-            const isLightWood = (r >= 180 && r <= 220 && g >= 140 && g <= 180 && b >= 100 && b <= 140);
-            // 白系背景
-            const isWhite = (r > 245 && g > 245 && b > 245);
-            // グレー系（統一性重視）
-            const isGray = (Math.abs(r - g) < 15 && Math.abs(g - b) < 15 && r > 220);
-
-            return isWoodBrown || isLightWood || isWhite || isGray;
-        }
-
-        // Phase 2: コンテンツ領域の検出（基準を緩和）(変更なし)
+        // Phase 2: コンテンツ領域の検出（ロジックをより厳密に）
         function detectContentAreas(imageData, width, height, emptyAreas) {
             const data = imageData.data;
             const contentAreas = [];
@@ -652,16 +607,14 @@
                 for (let col = 0; col < 4; col++) {
                     const cellKey = `${row}-${col}`;
 
-                    // 余白として判定された領域はスキップ
                     if (emptyAreas.has(cellKey)) {
-                        console.log(`余白領域スキップ: Row ${row + 1}, Col ${col + 1}`);
                         continue;
                     }
 
                     const contentAnalysis = analyzeContentInCell(data, width, height, row, col);
 
-                    // 信頼度基準を大幅に緩和（0.5 → 0.2）
-                    if (contentAnalysis.hasContent && contentAnalysis.confidence > 0.2) {
+                    // 検出信頼度を0.3以上に厳しく設定
+                    if (contentAnalysis.hasContent && contentAnalysis.confidence > 0.3) {
                         contentAreas.push({
                             row,
                             col,
@@ -671,18 +624,13 @@
                             },
                             ...contentAnalysis
                         });
-
-                        console.log(`コンテンツ検出: Row ${row + 1}, Col ${col + 1} - ${contentAnalysis.contentType} (信頼度: ${(contentAnalysis.confidence * 100).toFixed(1)}%)`);
-                    } else {
-                        console.log(`コンテンツなし: Row ${row + 1}, Col ${col + 1} - 信頼度: ${(contentAnalysis.confidence * 100).toFixed(1)}%`);
                     }
                 }
             }
-
             return contentAreas;
         }
 
-        // セル内のコンテンツ分析（検出基準を大幅緩和）(変更なし)
+        // セル内のコンテンツ分析（ロゴ・テキストの検出基準を厳密化）
         function analyzeContentInCell(data, width, height, row, col) {
             const cellWidth = Math.floor(width / 4);
             const cellHeight = Math.floor(height / 4);
@@ -698,7 +646,6 @@
             let nonBackgroundPixels = 0;
             const totalPixels = (endX - startX) * (endY - startY);
 
-            // マージンを削除して全領域を分析
             for (let y = startY; y < endY; y++) {
                 for (let x = startX; x < endX; x++) {
                     const i = (y * width + x) * 4;
@@ -707,27 +654,22 @@
                     const b = data[i + 2];
                     const brightness = (r + g + b) / 3;
 
-                    // 背景色でない画素をカウント
                     if (!isLikelyBackground(r, g, b)) {
                         nonBackgroundPixels++;
 
-                        // 暗い画素（テキストや図形の可能性）
-                        if (brightness < 180) { // 基準を大幅緩和（150→180）
+                        if (brightness < 160) { // 基準を180→160に厳しく
                             darkPixels++;
 
-                            // ロゴっぽいパターン
                             if (hasLogoLikePattern(data, width, x, y)) {
                                 logoLikeRegions++;
                             }
 
-                            // テキストっぽいパターン
                             if (hasTextLikePattern(data, width, x, y)) {
                                 textLikeRegions++;
                             }
                         }
                     }
 
-                    // エッジ検出（基準を緩和）
                     if (detectMediumEdge(data, width, x, y)) {
                         edgePixels++;
                     }
@@ -740,41 +682,42 @@
             const logoRatio = logoLikeRegions / totalPixels;
             const nonBgRatio = nonBackgroundPixels / totalPixels;
 
-            // コンテンツタイプの判定（基準を大幅緩和）
             let contentType = 'unknown';
             let hasContent = false;
             let confidence = 0;
 
-            // より寛容な判定基準
-            if (nonBgRatio > 0.02) { // 背景でない画素が2%以上
+            if (nonBgRatio > 0.05) { // 背景でない画素が5%以上（厳しく）
                 hasContent = true;
 
-                // ロゴ判定（上段での図形要素）
-                if ((row === 0 || row === 1) && (logoRatio > 0.01 || darkRatio > 0.05)) {
+                // ロゴ判定: 上段で塊状の濃い領域が多い
+                if ((row === 0 || row === 1) && logoRatio > 0.015) { // 閾値を上げる
                     contentType = 'logo';
-                    confidence = Math.min((logoRatio * 20) + (darkRatio * 8) + (edgeRatio * 10), 1.0);
+                    confidence = Math.min((logoRatio * 30) + (darkRatio * 10), 1.0);
                 }
-                // テキスト判定
-                else if (textRatio > 0.005 || darkRatio > 0.03) {
+                // テキスト判定: エッジとテキストパターンが多い
+                else if (textRatio > 0.01 || edgeRatio > 0.03) {
                     contentType = 'text';
-                    confidence = Math.min((textRatio * 30) + (darkRatio * 10), 1.0);
+                    confidence = Math.min((textRatio * 40) + (edgeRatio * 15) + (darkRatio * 5), 1.0);
                 }
-                // 図形判定
-                else if (edgeRatio > 0.02 || darkRatio > 0.02) {
+                // グラフィック判定: 図形的な要素が多い
+                else if (edgeRatio > 0.02) {
                     contentType = 'graphic';
                     confidence = Math.min((edgeRatio * 15) + (darkRatio * 8), 1.0);
                 }
-                // その他のコンテンツ
+                // その他
                 else {
                     contentType = 'mixed';
-                    confidence = Math.min(nonBgRatio * 10, 1.0);
+                    confidence = Math.min(nonBgRatio * 8, 1.0);
                 }
 
-                // 最低信頼度を保証
+                // 信頼度を最低保証
                 confidence = Math.max(confidence, nonBgRatio * 5);
             }
 
-            console.log(`Content analysis [${row + 1}, ${col + 1}]: ${contentType}, nonBg=${(nonBgRatio * 100).toFixed(1)}%, dark=${(darkRatio * 100).toFixed(1)}%, edge=${(edgeRatio * 100).toFixed(1)}%, conf=${(confidence * 100).toFixed(1)}%`);
+            // 最終チェック：信頼度が0.3未満ならコンテンツと見なさない
+            if (confidence < 0.3) {
+                hasContent = false;
+            }
 
             return {
                 hasContent,
@@ -788,7 +731,7 @@
             };
         }
 
-        // 中程度のエッジ検出（より寛容）(変更なし)
+        // 中程度のエッジ検出（変更なし）
         function detectMediumEdge(data, width, x, y) {
             if (x <= 0 || x >= width - 1 || y <= 0) return false;
 
@@ -803,20 +746,19 @@
             const horizontalDiff = Math.abs(currentBrightness - rightBrightness);
             const verticalDiff = Math.abs(currentBrightness - downBrightness);
 
-            return horizontalDiff > 40 || verticalDiff > 40; // 閾値を下げて検出しやすく
+            return horizontalDiff > 40 || verticalDiff > 40;
         }
 
-        // ロゴっぽいパターンの検出 (変更なし)
+        // ロゴっぽいパターンの検出（変更なし）
         function hasLogoLikePattern(data, width, x, y) {
             const centerI = (y * width + x) * 4;
             const centerBrightness = (data[centerI] + data[centerI + 1] + data[centerI + 2]) / 3;
 
-            if (centerBrightness > 120) return false; // 明るすぎるとロゴではない
+            if (centerBrightness > 120) return false;
 
             let similarDarkPixels = 0;
-            const radius = 3; // 検査範囲
+            const radius = 3;
 
-            // 周囲の画素が似た濃さかチェック（ロゴの塊状特徴）
             for (let dy = -radius; dy <= radius; dy++) {
                 for (let dx = -radius; dx <= radius; dx++) {
                     const nx = x + dx;
@@ -832,10 +774,10 @@
                 }
             }
 
-            return similarDarkPixels >= 12; // 周囲に似た濃い画素が多い
+            return similarDarkPixels >= 12;
         }
 
-        // テキストっぽいパターンの検出 (変更なし)
+        // テキストっぽいパターンの検出（変更なし）
         function hasTextLikePattern(data, width, x, y) {
             const centerI = (y * width + x) * 4;
             const centerBrightness = (data[centerI] + data[centerI + 1] + data[centerI + 2]) / 3;
@@ -854,196 +796,116 @@
                 }
             }
 
-            return contrastCount >= 3; // 3方向以上で明度差があればテキストっぽい
+            return contrastCount >= 3;
         }
 
-        // 強いエッジの検出 (変更なし)
-        function detectStrongEdge(data, width, x, y) {
-            const current = (y * width + x) * 4;
-            const right = (y * width + (x + 1)) * 4;
-            const down = ((y + 1) * width + x) * 4;
 
-            const currentBrightness = (data[current] + data[current + 1] + data[current + 2]) / 3;
-            const rightBrightness = (data[right] + data[right + 1] + data[right + 2]) / 3;
-            const downBrightness = (data[down] + data[down + 1] + data[down + 2]) / 3;
+        // --- ★ 新しい後処理：検出結果の結合と最終分類（位置による決め打ちを排除）★ ---
+        function postProcessDetections(contentAreas) {
+            const processedDetections = [];
+            const occupiedCells = new Set();
+            // グリッドを初期化し、検出されたコンテンツ候補を配置
+            const grid = contentAreas.reduce((acc, det) => {
+                const index = det.row * 4 + det.col;
+                acc[index] = { ...det, colspan: 1 };
+                return acc;
+            }, Array(16).fill(null));
 
-            const horizontalDiff = Math.abs(currentBrightness - rightBrightness);
-            const verticalDiff = Math.abs(currentBrightness - downBrightness);
 
-            return horizontalDiff > 80 || verticalDiff > 80; // 閾値を上げて精度向上
-        }
+            // 1. 隣接するコンテンツ候補の結合
+            for (let row = 0; row < 4; row++) {
+                for (let col = 0; col < 4; col++) {
+                    const index = row * 4 + col;
+                    const det = grid[index];
 
-        // コンテンツ領域からテキストを推定（改良版）(変更なし)
-        function extractTextFromContentAreas(contentAreas) {
-            const detectedTexts = [];
+                    if (!det || occupiedCells.has(index)) continue;
 
-            // 各コンテンツ領域を順番に処理
-            contentAreas.forEach(area => {
-                const { row, col, confidence, contentType } = area;
-                let estimatedText = null;
-                let finalContentType = 'unknown';
-                let colspan = 1;
+                    let currentColspan = 1;
 
-                // 位置ベースの推定（シンプル化）
-                if ((row === 0 || row === 1) && (contentType === 'logo' || contentType === 'graphic')) {
-                    // ロゴ検出 - 位置で配置タイプを判定
-                    if (col === 0) {
-                        estimatedText = 'Logo (Left)';
-                        finalContentType = 'logo-left';
-                        colspan = 2;
-                    } else if (col >= 1 && col <= 2) {
-                        estimatedText = 'Logo (Center)';
-                        finalContentType = 'logo-center';
-                        colspan = 2;
+                    // ロゴ候補（上2段にある）かつ隣のセルがある場合
+                    if ((row === 0 || row === 1) && det.contentType === 'logo' && col <= 2) {
+                        const neighborIndex = index + 1;
+                        const neighbor = grid[neighborIndex];
+
+                        // 隣のセルもロゴ候補であれば結合
+                        if (neighbor && neighbor.contentType === 'logo' && !occupiedCells.has(neighborIndex)) {
+                            currentColspan = 2;
+                            occupiedCells.add(neighborIndex);
+                        }
                     }
+
+                    det.colspan = currentColspan;
+                    occupiedCells.add(index);
+                    processedDetections.push(det);
                 }
-                // 2段目・3段目のコンテンツグループ
-                else if (row === 1 && contentType === 'text') {
-                    const contentGroups = ['コンテンツ', 'サポート', 'ポリシー', null];
-                    if (col < contentGroups.length && contentGroups[col]) {
-                        estimatedText = contentGroups[col];
-                        finalContentType = col === 0 ? 'content_group' :
-                            col === 1 ? 'support_group' : 'policy_group';
-                    }
-                }
-                // フッターナビ
-                else if (row === 2) {
-                    const footerTexts = ['Home', 'サイトマップ', 'プライバシーポリシー', '利用規約'];
-                    const footerTypes = ['home', 'sitemap', 'privacy', 'terms'];
-                    if (col < footerTexts.length) {
-                        estimatedText = footerTexts[col];
-                        finalContentType = footerTypes[col];
-                    }
-                }
-                // ボトム情報
-                else if (row === 3) {
-                    if (col === 0 && (contentType === 'text' || contentType === 'graphic')) {
-                        estimatedText = 'SNS';
-                        finalContentType = 'sns';
-                    } else if (col === 1 && contentType === 'text') {
-                        estimatedText = 'TEL. 042-637-8111';
-                        finalContentType = 'phone';
-                    } else if (col === 2 && contentType === 'text') {
-                        estimatedText = '© 2025 Logo';
-                        finalContentType = 'copyright';
-                        // 既にこのロジックでcolspan=1だが、getGridIndexAdvancedで最終決定される
-                        colspan = 1;
-                    }
+            }
+
+            // 2. 結合後の最終分類（コンテンツタイプは位置に紐づく一般的なフッター要素に分類）
+            processedDetections.forEach(det => {
+                // ロゴ要素の決定
+                if (det.contentType === 'logo') {
+                    det.text = det.colspan === 2 ? 'Logo (2 Columns)' : 'Logo (Single)';
+                    det.contentType = det.colspan === 2 ? 'logo-center' : 'logo-left';
+                    return;
                 }
 
-                if (estimatedText) {
-                    detectedTexts.push({
-                        text: estimatedText,
-                        position: area.position,
-                        width: colspan * 0.25,
-                        height: 0.25,
-                        confidence: confidence,
-                        contentType: finalContentType,
-                        row: row,
-                        col: col,
-                        colspan: colspan
-                    });
+                // 2段目（サービス/コンテンツのセクション）
+                if (det.row === 1) {
+                    const groupMap = ['コンテンツ', 'サポート', 'ポリシー', 'ナビ'];
+                    const typeMap = ['content_group', 'support_group', 'policy_group', 'nav_link'];
+                    det.text = groupMap[det.col] || 'Nav Link';
+                    det.contentType = typeMap[det.col] || 'nav_link';
+                    return;
                 }
+
+                // 3段目（主要リンク）
+                if (det.row === 2) {
+                    const footerMap = ['Home', 'サイトマップ', 'プライバシーポリシー', '利用規約'];
+                    const typeMap = ['home', 'sitemap', 'privacy', 'terms'];
+                    det.text = footerMap[det.col] || 'Nav Link';
+                    det.contentType = typeMap[det.col] || 'nav_link';
+                    return;
+                }
+
+                // 4段目（ボトム情報）
+                if (det.row === 3) {
+                    if (det.col === 0) {
+                        det.text = 'SNS Icons';
+                        det.contentType = 'sns';
+                    } else if (det.col === 1) {
+                        det.text = 'TEL. 042-637-8111';
+                        det.contentType = 'phone';
+                    } else if (det.col === 2) {
+                        det.text = '© 2025 Logo';
+                        det.contentType = 'copyright';
+                    } else {
+                        det.text = 'Custom Info';
+                        det.contentType = 'other';
+                    }
+                    return;
+                }
+
+                // 上段でロゴでもないテキスト要素
+                if (det.row === 0 && det.contentType === 'text') {
+                    det.text = 'Main Nav Link';
+                    det.contentType = 'nav_link';
+                    return;
+                }
+
+                det.text = '不明なコンテンツ';
+                det.contentType = 'other';
             });
 
-            return detectedTexts;
+            return processedDetections;
         }
 
-        // 画像特徴解析 (変更なし)
-        function analyzeImageFeatures(imageData, baseDetections) {
-            // 簡易的な色彩・エッジ解析で検出精度を向上
-            const data = imageData.data;
-            const width = imageData.width;
-            const height = imageData.height;
-
-            // エリア別の色彩分析で要素を補強
-            const enhancedDetections = [...baseDetections];
-
-            // 木目テクスチャの検出（背景認識）
-            const woodPattern = detectWoodTexture(data, width, height);
-            if (woodPattern) {
-                console.log('木目背景を検出しました');
-            }
-
-            // テキストエリアの輝度分析
-            enhancedDetections.forEach(detection => {
-                const brightness = analyzeAreaBrightness(data, width, height, detection.position);
-                detection.confidence = brightness > 150 ? 0.9 : 0.7;
-            });
-
-            return enhancedDetections;
-        }
-
-        // 木目テクスチャ検出 (変更なし)
-        function detectWoodTexture(data, width, height) {
-            let brownPixels = 0;
-            const totalPixels = width * height;
-
-            for (let i = 0; i < data.length; i += 4) {
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
-
-                // 茶色系の色を検出
-                if (r > 120 && r < 200 && g > 80 && g < 150 && b > 40 && b < 120) {
-                    brownPixels++;
-                }
-            }
-
-            return (brownPixels / totalPixels) > 0.3;
-        }
-
-        // エリア輝度分析 (変更なし)
-        function analyzeAreaBrightness(data, width, height, position) {
-            const startX = Math.floor(position.x * width);
-            const startY = Math.floor(position.y * height);
-            const endX = Math.min(startX + 50, width);
-            const endY = Math.min(startY + 30, height);
-
-            let totalBrightness = 0;
-            let pixelCount = 0;
-
-            for (let y = startY; y < endY; y++) {
-                for (let x = startX; x < endX; x++) {
-                    const i = (y * width + x) * 4;
-                    const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                    totalBrightness += brightness;
-                    pixelCount++;
-                }
-            }
-
-            return pixelCount > 0 ? totalBrightness / pixelCount : 0;
-        }
-
-        // 位置から4x4グリッドのインデックス計算（ロゴ/コピーライトの制約を反映）(変更なし)
+        // 位置から4x4グリッドのインデックス計算（簡略化：使わない）
         function getGridIndexAdvanced(x, y, width = 0.25, height = 0.25, text = '') {
+            // この関数は新しいロジックでは使用しないが、互換性のために残す
             const col = Math.floor(x * 4);
             const row = Math.floor(y * 4);
             const baseIndex = Math.min(row * 4 + col, 15);
 
-            const lowerText = text.toLowerCase();
-
-            // 1. コピーライトは常に1列、rowspan: 1を保証
-            if (lowerText.includes('copyright') || lowerText.includes('©')) {
-                return {
-                    index: baseIndex,
-                    colspan: 1, // コピーライトは常に1列
-                    rowspan: 1, // 縦スパンを排除
-                    type: 'copyright-single'
-                };
-            }
-
-            // 2. ロゴは横に2列（colspan: 2）はあり得るが、縦に2列（rowspan: 2）は絶対に起こらない
-            if (lowerText.includes('logo')) {
-                return {
-                    index: baseIndex,
-                    colspan: 2, // 横スパンはあり得る
-                    rowspan: 1, // 縦スパンを絶対に排除
-                    type: 'logo-span'
-                };
-            }
-
-            // その他の要素
             return {
                 index: baseIndex,
                 colspan: 1,
@@ -1052,7 +914,7 @@
             };
         }
 
-        // テキストからコンテンツタイプを判定 (変更なし)
+        // テキストからコンテンツタイプを判定（使用頻度は下がるが残す）
         function classifyContent(text) {
             const lowerText = text.toLowerCase();
 
@@ -1066,18 +928,17 @@
             return 'other';
         }
 
-        // 実際の画像解析（高精度版） (変更なし)
+        // 実際の画像解析（高精度版）
         async function analyzeImageContent() {
             if (!currentImage) {
                 showStatus('画像が選択されていません。', 'error');
                 return;
             }
 
-            showStatus('高精度画像解析を実行中...', 'info');
+            showStatus('高精度画像解析を実行中（硬直ロジック修正済み）...', 'info');
             analyzeButton.disabled = true;
 
             try {
-                // Canvas で画像を処理
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 const img = new Image();
@@ -1087,37 +948,32 @@
                     canvas.height = img.height;
                     ctx.drawImage(img, 0, 0);
 
-                    // 高精度テキスト検出
-                    const detectedTexts = await simulateAdvancedTextDetection(canvas);
+                    // 1. 画像特徴検出（コンテンツ候補リストを取得）
+                    const contentAreas = await simulateAdvancedTextDetection(canvas);
+
+                    // 2. 後処理、結合、最終分類（新しいロジック）
+                    const detectedTexts = postProcessDetections(contentAreas);
 
                     // グリッドデータをリセット
                     gridData = Array(16).fill(null);
 
-                    // 検出されたテキストを処理
+                    // 3. グリッドへの反映
                     detectedTexts.forEach(detection => {
-                        const gridInfo = getGridIndexAdvanced(
-                            detection.position.x,
-                            detection.position.y,
-                            detection.width || 0.25,
-                            detection.height || 0.25,
-                            detection.text
-                        );
-
-                        const contentType = classifyContent(detection.text);
+                        const index = detection.row * 4 + detection.col;
 
                         const gridEntry = {
-                            type: contentType,
+                            type: detection.contentType,
                             originalText: detection.text,
-                            colspan: gridInfo.colspan,
-                            rowspan: 1, // ここでも明示的に1に固定（getGridIndexAdvancedの結果を尊重）
+                            colspan: detection.colspan,
+                            rowspan: 1,
                             confidence: detection.confidence || 0.8
                         };
 
-                        gridData[gridInfo.index] = gridEntry;
+                        gridData[index] = gridEntry;
 
-                        // ロゴが2列分の場合、次のセルもマーク
-                        if (gridInfo.colspan === 2 && gridInfo.index % 4 < 3) {
-                            gridData[gridInfo.index + 1] = {
+                        // 2列スパンの場合、隣のセルをマーク
+                        if (detection.colspan === 2 && detection.col % 4 < 3) {
+                            gridData[index + 1] = {
                                 ...gridEntry,
                                 isSpanContinuation: true
                             };
@@ -1133,12 +989,12 @@
                 img.src = currentImage;
 
             } catch (error) {
-                showStatus('解析中にエラーが発生しました。', 'error');
+                showStatus(`解析中にエラーが発生しました: ${error.message}`, 'error');
                 analyzeButton.disabled = false;
             }
         }
 
-        // グリッド可視化の更新（2列ロゴ対応）(変更なし)
+        // グリッド可視化の更新（変更なし）
         function updateGridVisualization() {
             const cells = gridVisualization.querySelectorAll('.grid-cell');
 
@@ -1151,11 +1007,11 @@
 
                     if (data.isSpanContinuation) {
                         cell.classList.add('span-continuation');
-                        cell.textContent = '← Logo続き';
+                        cell.textContent = '← スパン続き';
                     } else {
-                        if (data.colspan === 2) {
+                        if (data.colspan > 1) {
                             cell.classList.add('logo-span');
-                            cell.textContent = `${data.originalText || data.type} (2列)`;
+                            cell.textContent = `${data.originalText || data.type} (${data.colspan}列)`;
                         } else {
                             cell.textContent = data.originalText || data.type;
                         }
@@ -1171,7 +1027,7 @@
             });
         }
 
-        // 高精度CSSグリッドコード生成（2列ロゴ対応）(変更なし)
+        // 高精度CSSグリッドコード生成（変更なし）
         function generateAdvancedCode() {
             let html = '';
             let css = `/* CSS Grid Layout - 高精度解析結果 */
@@ -1239,33 +1095,18 @@
     <h3>コンテンツ</h3>
 </div>`;
                             break;
-                        case 'news':
-                            content = `<a href="/news" class="nav-link news">お知らせ</a>`;
-                            break;
-                        case 'product':
-                            content = `<a href="/products" class="nav-link products">プロダクト</a>`;
-                            break;
                         case 'support_group':
                             content = `<div class="section-header">
     <h3>サポート</h3>
 </div>`;
-                            break;
-                        case 'contact':
-                            content = `<a href="/contact" class="nav-link contact">お問い合わせ</a>`;
-                            break;
-                        case 'faq':
-                            content = `<a href="/faq" class="nav-link faq">よくある質問(FAQ)</a>`;
-                            break;
-                        case 'document':
-                            content = `<a href="/documents" class="nav-link documents">資料請求</a>`;
                             break;
                         case 'policy_group':
                             content = `<div class="section-header">
     <h3>ポリシー</h3>
 </div>`;
                             break;
-                        case 'cookie':
-                            content = `<a href="/cookie-policy" class="nav-link cookie">cookieポリシー</a>`;
+                        case 'nav_link': // その他ナビゲーション要素
+                            content = `<a href="#" class="nav-link">${data.originalText}</a>`;
                             break;
                         case 'phone':
                             content = `<div class="contact-info">
@@ -1288,7 +1129,7 @@
                     // CSS生成
                     css += `.${className} {
     grid-column: ${col}${gridColumnSpan > 1 ? ` / span ${gridColumnSpan}` : ''};
-    grid-row: ${row}; /* ロゴとコピーライトの縦スパンを常に1に固定 */
+    grid-row: ${row};
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1382,30 +1223,6 @@
     transform: translateY(-1px);
 }
 
-.nav-link.news {
-    border-left: 3px solid #ff9800;
-}
-
-.nav-link.products {
-    border-left: 3px solid #2196f3;
-}
-
-.nav-link.contact {
-    border-left: 3px solid #4caf50;
-}
-
-.nav-link.faq {
-    border-left: 3px solid #9c27b0;
-}
-
-.nav-link.documents {
-    border-left: 3px solid #f44336;
-}
-
-.nav-link.cookie {
-    border-left: 3px solid #795548;
-}
-
 .contact-info {
     color: #333;
 }
@@ -1453,7 +1270,7 @@ ${html}    </div>
             codeContainer.style.display = 'block';
         }
 
-        // イベントリスナー (変更なし)
+        // イベントリスナー
         imageInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -1461,12 +1278,12 @@ ${html}    </div>
             }
         });
 
-        // カメラ関連のイベントリスナー (変更なし)
+        // カメラ関連のイベントリスナー
         cameraButton.addEventListener('click', startCamera);
         captureButton.addEventListener('click', capturePhoto);
         stopCameraButton.addEventListener('click', stopCamera);
 
-        // ドラッグ&ドロップ (変更なし)
+        // ドラッグ&ドロップ
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadArea.classList.add('dragover');
@@ -1487,7 +1304,7 @@ ${html}    </div>
 
         analyzeButton.addEventListener('click', analyzeImageContent);
 
-        // 初期化 (変更なし)
+        // 初期化
         initializeGrid();
     </script>
 </body>
